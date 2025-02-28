@@ -1,0 +1,36 @@
+version: '3.4'
+services:
+  restarter:
+    image: docker:cli
+    volumes: [ "/var/run/docker.sock:/var/run/docker.sock" ]
+    command: [ "/bin/sh", "-c", "while true; do sleep 43200; docker restart kafka-ui; done" ]
+    restart: always
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    restart: always
+    ports:
+      - 80:8080
+    extra_hosts:
+      - "kafka1-tls.cluster.com:130.1.1.54"
+      - "kafka2-tls.cluster.com:130.1.1.55"
+      - "kafka3-tls.cluster.com:130.1.1.56"
+
+    environment:
+
+      #### Secure kafka connected to cluster.com domain TLS only
+      KAFKA_CLUSTERS_0_NAME: tls-Kafka-cluster
+      KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SSL
+      KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: GSSAPI
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka1-tls.cluster.com:9093,kafka2-tls.cluster.com:9093,kafka3-tls.cluster.com:9093
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTORELOCATION: /etc/kafkaui/cluster-tls/tls.truststore
+      KAFKA_CLUSTERS_0_SSL_TRUSTSTOREPASSWORD: zaq123
+      KAFKA_CLUSTERS_0_METRICS_PORT: 8080
+      KAFKA_CLUSTERS_0_METRICS_TYPE: PROMETHEUS
+      KAFKA_CLUSTERS_0_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: '' # DISABLE COMMON NAME VERIFICATION
+#### General configuration
+#      ## If you wish to enable the configuration from the UI enable this value
+#      #DYNAMIC_CONFIG_ENABLED: true
+    volumes:
+      - ./cluster-tls/tls.truststore:/etc/kafkaui/cluster-tls/tls.truststore:U
+      - ./krb5.conf:/etc/krb5.conf:U
