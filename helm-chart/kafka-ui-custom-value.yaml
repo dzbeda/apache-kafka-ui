@@ -1,0 +1,39 @@
+envs:
+  secret: {}
+  config:
+    KAFKA_CLUSTERS_0_NAME: "unsecure-kafka-cluster"
+    KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka1-nonesecure:9092"
+    KAFKA_CLUSTERS_1_NAME: "secure-Kafka-cluster"
+    KAFKA_CLUSTERS_1_PROPERTIES_SECURITY_PROTOCOL: "SASL_SSL"
+    KAFKA_CLUSTERS_1_PROPERTIES_SASL_MECHANISM: "GSSAPI"
+    KAFKA_CLUSTERS_1_PROPERTIES_SASL_JAAS_CONFIG: com.sun.security.auth.module.Krb5LoginModule required  useKeyTab=true storeKey=true keyTab="/kafka-ui/keytab/daviduser-keytab" principal="daviduser@CLUSTER.COM";
+    KAFKA_CLUSTERS_1_PROPERTIES_SASL_KERBEROS_SERVICE_NAME: "kafka"
+    KAFKA_CLUSTERS_1_BOOTSTRAPSERVERS: "kafka1.cluster.com:9093,kafka2.cluster.com:9093,kafka3.cluster.com:9093"
+    KAFKA_CLUSTERS_1_SSL_TRUSTSTORELOCATION: "/kafka-ui/truststore/my.truststore"
+    KAFKA_CLUSTERS_1_SSL_TRUSTSTOREPASSWORD: "zaq1234"
+    KAFKA_CLUSTERS_1_METRICS_PORT: "8080"
+    KAFKA_CLUSTERS_1_METRICS_TYPE: "PROMETHEUS"
+    KAFKA_CLUSTERS_1_PROPERTIES_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: '' # DISABLE COMMON NAME VERIFICATION
+    AUTH_TYPE: "DISABLED"
+    MANAGEMENT_HEALTH_LDAP_ENABLED: "FALSE"
+volumeMounts:
+  - mountPath: /kafka-ui/truststore
+    name: truststore
+  - mountPath: /etc/krb5.conf
+    name: krb5
+    subPath: krb5.conf
+  - mountPath: /kafka-ui/keytab/daviduser-keytab
+    name: keytab
+    subPath: daviduser-keytab
+volumes:
+  - name: truststore
+    secret:
+      defaultMode: 420
+      secretName: truststore
+  - name: krb5
+    configMap:
+      name: krb5
+  - name: keytab
+    secret:
+      defaultMode: 420
+      secretName: keytab
